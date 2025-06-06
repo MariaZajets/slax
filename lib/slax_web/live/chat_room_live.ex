@@ -22,6 +22,7 @@ defmodule SlaxWeb.ChatRoomLive do
   end
 
   def mount(_params, _session, socket) do
+
     room = Room |> Repo.all() |> List.first()
 
     {:ok, assign(socket, :room, room)}
