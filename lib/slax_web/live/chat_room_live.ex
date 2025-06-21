@@ -2,6 +2,7 @@ defmodule SlaxWeb.ChatRoomLive do
   use SlaxWeb, :live_view
 
   alias Slax.Chat
+  alias Slax.Chat.Message
   alias Slax.Chat.Room
 
   def render(assigns) do
@@ -48,20 +49,48 @@ defmodule SlaxWeb.ChatRoomLive do
           </div>
         </div>
         <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
-        <li class="text-[0.8125rem] leading-6 text-zinc-900">
-        {@current_user.email}
-        </li>
-        <li>
-        <.link href={~p"/users/settings"} class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700">
-          Settings
-          </.link>
-        </li>
-        <li>
-        <.link href={~p"/users/log_out"} method="delete" class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700">
-        Log out
-        </.link>
-        </li>
+          <li class="text-[0.8125rem] leading-6 text-zinc-900">
+            {@current_user.email}
+          </li>
+          <li>
+            <.link
+              href={~p"/users/settings"}
+              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            >
+              Settings
+            </.link>
+          </li>
+          <li>
+            <.link
+              href={~p"/users/log_out"}
+              method="delete"
+              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            >
+              Log out
+            </.link>
+          </li>
         </ul>
+      </div>
+      <div class="flex flex-col grow overflow-auto">
+        <.message :for={message <- @messages} message={message} />
+      </div>
+    </div>
+    """
+  end
+
+  attr :message, Message, required: true
+
+  defp message(assigns) do
+    ~H"""
+    <div class="relative flex px-4 py-3">
+      <div class="h-10 w-10 rounded shrink-0 bg-slate-300"></div>
+      <div class="ml-2">
+        <div class="-mt-1">
+          <.link class="text-sm font-semibold hover:underline">
+            <span>User</span>
+          </.link>
+          <p class="text-sm">{@message.body}</p>
+        </div>
       </div>
     </div>
     """
@@ -103,6 +132,14 @@ defmodule SlaxWeb.ChatRoomLive do
           List.first(socket.assigns.rooms)
       end
 
-    {:noreply, assign(socket, hide_topic?: false, page_title: "#" <> room.name, room: room)}
+    messages = Chat.list_messages_in_room(room)
+
+    {:noreply,
+     assign(socket,
+       hide_topic?: false,
+       messages: messages,
+       page_title: "#" <> room.name,
+       room: room
+     )}
   end
 end

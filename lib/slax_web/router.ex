@@ -18,7 +18,6 @@ defmodule SlaxWeb.Router do
     plug :accepts, ["json"]
   end
 
-
   # Other scopes may use custom stacks.
   # scope "/api", SlaxWeb do
   #   pipe_through :api
