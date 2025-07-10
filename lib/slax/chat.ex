@@ -87,7 +87,7 @@ defmodule Slax.Chat do
   def joined?(%Room{} = room, %User{} = user) do
     Repo.exists?(
       from rm in RoomMembership,
-      where: rm.room_id == ^room.id and rm.user_id == ^user.id
+        where: rm.room_id == ^room.id and rm.user_id == ^user.id
     )
   end
 end

@@ -10,6 +10,6 @@ defmodule SlaxWeb.RoomController do
         [first | _] -> ~p"/rooms/#{first}"
       end
 
-      redirect(conn, to: path)
+    redirect(conn, to: path)
   end
 end

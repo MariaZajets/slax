@@ -594,10 +594,10 @@ defmodule SlaxWeb.CoreComponents do
   attr :style, :string, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
-     ~H"""
+    ~H"""
     <span class={[@name, @class]} id={@id} style={@style} />
     """
-   end
+  end
 
   ## JS Commands
 

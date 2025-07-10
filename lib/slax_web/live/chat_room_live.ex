@@ -19,42 +19,42 @@ defmodule SlaxWeb.ChatRoomLive do
         </div>
       </div>
       <.toggler on_click={toggle_rooms()} dom_id="rooms-toggler" text="Rooms" />
-        <div id="rooms-list">
-          <.room_link :for={room <- @rooms} room={room} active={room.id == @room.id} />
-          <div class="relative">
-            <button
-              class="flex items-center peer h-8 text-sm pl-8 pr-3 hover:bg-slate-300 cursor-pointer w-full"
-              phx-click={JS.toggle(to: "#sidebar-rooms-menu")}
-            >
-              <.icon name="hero-plus" class="h-4 w-4 relative top-px" />
-              <span class="ml-2 leading-none">Add rooms</span>
-            </button>
-            <div
-              id="sidebar-rooms-menu"
-              class="hidden cursor-default absolute top-8 right-2 bg-white border-slate-200 border py-3 rounded-lg"
-              phx-click-away={JS.hide()}
-            >
-              <div class="w-full text-left">
-                <.link
-                  class="block select-none cursor-pointer whitespace-nowrap text-gray-800 hover:text-white px-6 py-1 block hover:bg-sky-600"
-                  navigate={~p"/rooms"}
-                >
-                  Browse rooms
-                </.link>
-              </div>
+      <div id="rooms-list">
+        <.room_link :for={room <- @rooms} room={room} active={room.id == @room.id} />
+        <div class="relative">
+          <button
+            class="flex items-center peer h-8 text-sm pl-8 pr-3 hover:bg-slate-300 cursor-pointer w-full"
+            phx-click={JS.toggle(to: "#sidebar-rooms-menu")}
+          >
+            <.icon name="hero-plus" class="h-4 w-4 relative top-px" />
+            <span class="ml-2 leading-none">Add rooms</span>
+          </button>
+          <div
+            id="sidebar-rooms-menu"
+            class="hidden cursor-default absolute top-8 right-2 bg-white border-slate-200 border py-3 rounded-lg"
+            phx-click-away={JS.hide()}
+          >
+            <div class="w-full text-left">
+              <.link
+                class="block select-none cursor-pointer whitespace-nowrap text-gray-800 hover:text-white px-6 py-1 block hover:bg-sky-600"
+                navigate={~p"/rooms"}
+              >
+                Browse rooms
+              </.link>
             </div>
           </div>
         </div>
-        <div class="mt-4">
-          <.toggler on_click={toggle_users()} dom_id="users-toggler" text="Users" />
-          <div id="users-list">
-            <.user
-              :for={user <- @users}
-              user={user}
-              online={OnlineUsers.online?(@online_users, user.id)}
-              />
-          </div>
+      </div>
+      <div class="mt-4">
+        <.toggler on_click={toggle_users()} dom_id="users-toggler" text="Users" />
+        <div id="users-list">
+          <.user
+            :for={user <- @users}
+            user={user}
+            online={OnlineUsers.online?(@online_users, user.id)}
+          />
         </div>
+      </div>
     </div>
     <div class="flex flex-col grow shadow-lg">
       <div class="flex justify-between items-center shrink-0 h-16 bg-white border-b border-slate-300 px-4">
@@ -63,6 +63,7 @@ defmodule SlaxWeb.ChatRoomLive do
             #{@room.name}
 
             <.link
+              :if={@joined?}
               class="font-normal text-xs text-blue-600 hover:text-blue-700"
               navigate={~p"/rooms/#{@room}/edit"}
             >
@@ -105,10 +106,10 @@ defmodule SlaxWeb.ChatRoomLive do
         </ul>
       </div>
       <div
-      id="room-messages"
-      class="flex flex-col grow overflow-auto"
-      phx-hook="RoomMessages"
-      phx-update="stream"
+        id="room-messages"
+        class="flex flex-col grow overflow-auto"
+        phx-hook="RoomMessages"
+        phx-update="stream"
       >
         <.message
           :for={{dom_id, message} <- @streams.messages}
@@ -131,16 +132,43 @@ defmodule SlaxWeb.ChatRoomLive do
             cols=""
             id="chat-message-textarea"
             name={@new_message_form[:body].name}
+            placeholder={"Message ##{@room.name}"}
             phx-debounce
             phx-hook="ChatMessageTextarea"
-            placeholder={"Message ##{@room.name}"}
             rows="1"
           >{Phoenix.HTML.Form.normalize_value("textarea", @new_message_form[:body].value)}</textarea>
-
           <button class="shrink flex items-center justify-center h-6 w-6 rounded hover:bg-slate-200">
             <.icon name="hero-paper-airplane" class="h-4 w-4" />
           </button>
         </.form>
+      </div>
+      <div
+        :if={!@joined?}
+        class="flex justify-around mx-5 mb-5 p-6 bg-slate-100 border-slate-300 border rounded-lg"
+      >
+        <div class="max-w-3-xl text-center">
+          <div class="mb-4">
+            <h1 class="text-xl font-semibold">#{@room.name}</h1>
+            <p :if={@room.topic} class="text-sm mt-1 text-gray-600">{@room.topic}</p>
+          </div>
+          <div class="flex items-center justify-around">
+            <button
+              phx-click="join-room"
+              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              Join Room
+            </button>
+          </div>
+          <div class="mt-4">
+            <.link
+              navigate={~p"/rooms"}
+              href="#"
+              class="text-sm text-slate-500 underline hover:text-slate-600"
+            >
+              Back to All Rooms
+            </.link>
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -276,7 +304,7 @@ defmodule SlaxWeb.ChatRoomLive do
   def handle_params(params, _uri, socket) do
     if socket.assigns[:room], do: Chat.unsubscribe_from_room(socket.assigns.room)
 
-    room =  params |> Map.fetch!("id") |> Chat.get_room!()
+    room = params |> Map.fetch!("id") |> Chat.get_room!()
     messages = Chat.list_messages_in_room(room)
 
     Chat.subscribe_to_room(room)
@@ -299,9 +327,17 @@ defmodule SlaxWeb.ChatRoomLive do
   end
 
   def handle_event("delete-message", %{"id" => id}, socket) do
-  Chat.delete_message_by_id(id, socket.assigns.current_user)
+    Chat.delete_message_by_id(id, socket.assigns.current_user)
 
-  {:noreply, socket}
+    {:noreply, socket}
+  end
+
+  def handle_event("join-room", _, socket) do
+    current_user = socket.assigns.current_user
+    Chat.join_room!(socket.assigns.room, current_user)
+    Chat.subscribe_to_room(socket.assigns.room)
+    socket = assign(socket, joined?: true, rooms: Chat.list_joined_rooms(current_user))
+    {:noreply, socket}
   end
 
   def handle_event("submit-message", %{"message" => message_params}, socket) do
@@ -354,13 +390,13 @@ defmodule SlaxWeb.ChatRoomLive do
 
   defp toggle_rooms do
     JS.toggle(to: "#rooms-toggler-cheron-down")
-     |> JS.toggle(to: "#rooms-toggler-cheron-right")
-     |> JS.toggle(to: "#rooms-list")
+    |> JS.toggle(to: "#rooms-toggler-cheron-right")
+    |> JS.toggle(to: "#rooms-list")
   end
 
   defp toggle_users do
     JS.toggle(to: "#users-toggler-cheron-down")
-     |> JS.toggle(to: "#users-toggler-cheron-right")
-     |> JS.toggle(to: "#users-list")
+    |> JS.toggle(to: "#users-toggler-cheron-right")
+    |> JS.toggle(to: "#users-list")
   end
 end
