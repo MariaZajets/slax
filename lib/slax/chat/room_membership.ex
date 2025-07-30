@@ -2,8 +2,8 @@ defmodule Slax.Chat.RoomMembership do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Slax.Accounts.User
   alias Slax.Chat.Room
+  alias Slax.Accounts.User
 
   schema "room_memberships" do
     belongs_to :room, Room
