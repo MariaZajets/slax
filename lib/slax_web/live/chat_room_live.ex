@@ -1,4 +1,5 @@
 defmodule SlaxWeb.ChatRoomLive do
+alias Floki.HTML.Tokenizer.CharrefState
   use SlaxWeb, :live_view
 
   alias Slax.Accounts
@@ -45,6 +46,12 @@ defmodule SlaxWeb.ChatRoomLive do
                 navigate={~p"/rooms"}
               >
                 Browse rooms
+              </.link>
+              <.link
+                class="block select-none cursor-pointer whitespace-nowrap text-gray-800 hover:text-white px-6 py-1 block hover:bg-sky-600"
+                phx-click={show_modal("new-room-modal")}
+              >
+                Create a new room
               </.link>
             </div>
           </div>
@@ -184,6 +191,11 @@ defmodule SlaxWeb.ChatRoomLive do
         </div>
       </div>
     </div>
+
+    <.modal id="new-room-modal">
+      <.header> New chat room </.header>
+      (Form goes here)
+    </.modal>
     """
   end
 
