@@ -1,5 +1,4 @@
 defmodule SlaxWeb.ChatRoomLive do
-alias Floki.HTML.Tokenizer.CharrefState
   use SlaxWeb, :live_view
 
   alias Slax.Accounts
@@ -8,6 +7,8 @@ alias Floki.HTML.Tokenizer.CharrefState
   alias Slax.Chat.Message
   alias Slax.Chat.Room
   alias SlaxWeb.OnlineUsers
+
+  import SlaxWeb.RoomComponents
 
   def render(assigns) do
     ~H"""
@@ -192,20 +193,14 @@ alias Floki.HTML.Tokenizer.CharrefState
       </div>
     </div>
 
-    <.modal id="new-room-modal" show={@live_action == :new} on_cancel={JS.navigate(~p"/rooms/#{@room}")}>
+    <.modal
+      :if={@live_action == :new}
+      id="new-room-modal"
+      show
+      on_cancel={JS.patch(~p"/rooms/#{@room}")}
+    >
       <.header> New chat room </.header>
-      <.simple_form
-        for={@new_room_form}
-        id="room-form"
-        phx-change="validate-room"
-        phx-submit="save-room"
-        >
-        <.input field={@new_room_form[:name]} type="text" label="Name" phx-debounce />
-        <.input field={@new_room_form[:topic]} type="text" label="Topic" phx-debounce />
-        <:actions>
-          <.button phx-disable-with="Saving..." class="w-full"> Save </.button>
-        </:actions>
-      </.simple_form>
+      <.room_form form={@new_room_form} />
     </.modal>
     """
   end
