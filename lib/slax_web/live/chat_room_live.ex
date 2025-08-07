@@ -49,7 +49,7 @@ alias Floki.HTML.Tokenizer.CharrefState
               </.link>
               <.link
                 class="block select-none cursor-pointer whitespace-nowrap text-gray-800 hover:text-white px-6 py-1 block hover:bg-sky-600"
-                phx-click={show_modal("new-room-modal")}
+                navigate={~p"/rooms/#{@room}/new"}
               >
                 Create a new room
               </.link>
@@ -192,7 +192,7 @@ alias Floki.HTML.Tokenizer.CharrefState
       </div>
     </div>
 
-    <.modal id="new-room-modal">
+    <.modal id="new-room-modal" show={@live_action == :new} on_cancel={JS.navigate(~p"/rooms/#{@room}")}>
       <.header> New chat room </.header>
       <.simple_form
         for={@new_room_form}
