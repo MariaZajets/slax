@@ -199,7 +199,7 @@ defmodule SlaxWeb.ChatRoomLive do
       show
       on_cancel={JS.patch(~p"/rooms/#{@room}")}
     >
-      <.header> New chat room </.header>
+      <.header>New chat room</.header>
       <.room_form form={@new_room_form} />
     </.modal>
     """
@@ -323,6 +323,7 @@ defmodule SlaxWeb.ChatRoomLive do
   def mount(_params, _session, socket) do
     rooms =
       Chat.list_joined_rooms_with_unread_counts(socket.assigns.current_user)
+
     users = Accounts.list_users()
 
     timezone = get_connect_params(socket)["timezone"]
@@ -335,17 +336,17 @@ defmodule SlaxWeb.ChatRoomLive do
 
     Enum.each(rooms, fn {chat, _} -> Chat.subscribe_to_room(chat) end)
 
-      socket
-      |> assign(rooms: rooms, timezone: timezone, users: users)
-      |> assign(online_users: OnlineUsers.list())
-      |> assign_room_form(Chat.change_room(%Room{}))
-      |> stream_configure(:messages,
-        dom_id: fn
-          %Message{id: id} -> "messages-#{id}"
-          :unread_marker -> "messages-unread-marker"
-        end
-      )
-      |> ok()
+    socket
+    |> assign(rooms: rooms, timezone: timezone, users: users)
+    |> assign(online_users: OnlineUsers.list())
+    |> assign_room_form(Chat.change_room(%Room{}))
+    |> stream_configure(:messages,
+      dom_id: fn
+        %Message{id: id} -> "messages-#{id}"
+        :unread_marker -> "messages-unread-marker"
+      end
+    )
+    |> ok()
   end
 
   defp assign_room_form(socket, changeset) do
@@ -355,6 +356,7 @@ defmodule SlaxWeb.ChatRoomLive do
   def handle_params(params, _uri, socket) do
     room = params |> Map.fetch!("id") |> Chat.get_room!()
     last_read_at = Chat.get_last_read_at(room, socket.assigns.current_user)
+
     messages =
       room
       |> Chat.list_messages_in_room()
@@ -362,25 +364,25 @@ defmodule SlaxWeb.ChatRoomLive do
 
     Chat.update_last_read_at(room, socket.assigns.current_user)
 
-     socket
-     |> assign(
-       hide_topic?: false,
-       joined?: Chat.joined?(room, socket.assigns.current_user),
-       page_title: "#" <> room.name,
-       room: room
-     )
-     |> stream(:messages, messages, reset: true)
-     |> assign_message_form(Chat.change_message(%Message{}))
-     |> push_event("scroll_messages_to_bottom", %{})
-     |> update(:rooms, fn rooms ->
-        room_id = room.id
+    socket
+    |> assign(
+      hide_topic?: false,
+      joined?: Chat.joined?(room, socket.assigns.current_user),
+      page_title: "#" <> room.name,
+      room: room
+    )
+    |> stream(:messages, messages, reset: true)
+    |> assign_message_form(Chat.change_message(%Message{}))
+    |> push_event("scroll_messages_to_bottom", %{})
+    |> update(:rooms, fn rooms ->
+      room_id = room.id
 
-        Enum.map(rooms, fn
-          {%Room{id: ^room_id} = room, _} -> {room, 0}
-          other -> other
-        end)
-     end)
-     |> noreply()
+      Enum.map(rooms, fn
+        {%Room{id: ^room_id} = room, _} -> {room, 0}
+        other -> other
+      end)
+    end)
+    |> noreply()
   end
 
   defp maybe_insert_unread_marker(messages, nil), do: messages
@@ -413,9 +415,9 @@ defmodule SlaxWeb.ChatRoomLive do
 
     socket =
       assign(socket,
-      joined?: true,
-      rooms: Chat.list_joined_rooms_with_unread_counts(current_user)
-    )
+        joined?: true,
+        rooms: Chat.list_joined_rooms_with_unread_counts(current_user)
+      )
 
     {:noreply, socket}
   end
