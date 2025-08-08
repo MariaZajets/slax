@@ -342,7 +342,6 @@ defmodule SlaxWeb.ChatRoomLive do
 
     Enum.each(rooms, fn {chat, _} -> Chat.subscribe_to_room(chat) end)
 
-    socket =
       socket
       |> assign(rooms: rooms, timezone: timezone, users: users)
       |> assign(online_users: OnlineUsers.list())
@@ -353,8 +352,7 @@ defmodule SlaxWeb.ChatRoomLive do
           :unread_marker -> "messages-unread-marker"
         end
       )
-
-    {:ok, socket}
+      |> ok()
   end
 
   defp assign_room_form(socket, changeset) do
@@ -371,7 +369,6 @@ defmodule SlaxWeb.ChatRoomLive do
 
     Chat.update_last_read_at(room, socket.assigns.current_user)
 
-    {:noreply,
      socket
      |> assign(
        hide_topic?: false,
@@ -389,7 +386,8 @@ defmodule SlaxWeb.ChatRoomLive do
           {%Room{id: ^room_id} = room, _} -> {room, 0}
           other -> other
         end)
-     end)}
+     end)
+     |> noreply()
   end
 
   defp maybe_insert_unread_marker(messages, nil), do: messages
