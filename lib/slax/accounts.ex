@@ -46,7 +46,7 @@ defmodule Slax.Accounts do
       |> Repo.one()
 
     if User.valid_password?(user, password), do: user
-    end
+  end
 
   @doc """
   Gets a single user.
