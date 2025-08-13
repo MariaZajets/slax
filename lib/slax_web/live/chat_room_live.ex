@@ -214,6 +214,7 @@ defmodule SlaxWeb.ChatRoomLive do
         id="profile"
         module={SlaxWeb.ChatRoomLive.ProfileComponent}
         user={@profile}
+        current_user={@current_user}
       />
     <% end %>
 
