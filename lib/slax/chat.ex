@@ -166,7 +166,6 @@ defmodule Slax.Chat do
   end
 
   def get_message!(id) do
-
     Message
     |> where([m], m.id == ^id)
     |> preload_message_user_and_replies()
@@ -175,13 +174,30 @@ defmodule Slax.Chat do
 
   def delete_reply_by_id(id, %User{id: user_id}) do
     with %Reply{} = reply <-
-            from(r in Reply, where: r.id == ^id and r.user_id == ^user_id)
-            |> Repo.one() do
+           from(r in Reply, where: r.id == ^id and r.user_id == ^user_id)
+           |> Repo.one() do
       Repo.delete(reply)
 
       message = get_message!(reply.message_id)
 
       Phoenix.PubSub.broadcast!(@pubsub, topic(message.room_id), {:deleted_reply, message})
+    end
+  end
+
+  def change_reply(reply, attrs \\ %{}) do
+    Reply.changeset(reply, attrs)
+  end
+
+  def create_reply(%Message{} = message, attrs, user) do
+    with {:ok, reply} <-
+           %Reply{message: message, user: user}
+           |> Reply.changeset(attrs)
+           |> Repo.insert() do
+      message = get_message!(reply.message_id)
+
+      Phoenix.PubSub.broadcast!(@pubsub, topic(message.room_id), {:new_reply, message})
+
+      {:ok, reply}
     end
   end
 end
